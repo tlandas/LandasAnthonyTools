@@ -1,0 +1,232 @@
+---
+title: "Quiz 3 Start"
+author: "Anthony Landas"
+date: "February 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(devtools)
+library(roxygen2)
+library(readr)
+```
+
+## Intro
+
+I'm building an R package using devtools `create` function
+
+Name the package: `r pname<-"LATools"`
+
+Now let's run the script
+
+```{r}
+devtools::create(pname)
+```
+
+
+## Defaults
+
+First we want fill out the `DESCRIPTION` file.
+
+```{r}
+pname<-"LATools"
+devtools::create(pname)
+dir(pname)
+
+loc<-paste(getwd(),pname,sep="/")
+loc_pack <-paste(loc,"DESCRIPTION",sep="/")
+readLines(loc_pack)
+#loc<-getwd()
+#loc_pack<-paste(loc, pname, sep="/")
+#readLines(loc_pack)
+
+desc<-readLines(paste(loc_pack))
+
+desc[grep("Title",desc)]<-"Title: Landas Anthony Tools"
+desc[grep("Author",desc)]<-"Authors@R: person(\"Tony\", \"Landas\", email = \"landa057@umn.edu\", role = c(\"aut\", \"cre\"))"
+desc[grep("Description",desc)]<-"Description: This is a set of functions, etc for Quiz and HW."
+desc[grep("License",desc)]<-"License: MIT + file LICENSE"
+#writeLines(desc, con=loc_pack, sep ="/")
+
+```
+
+'LICENSE' file
+```{r}
+write_file(x="
+YEAR: 2018
+COPYRIGHT HOLDER: Tony Landas
+", path=paste(loc,"LICENSE",sep="/"))
+```
+
+## Functions
+
+Let's just creat an R file to edit.
+
+```{r}
+filename<-"Funcs.R"
+
+write_file(" 
+#' TITLE
+#'
+#' @par x is data
+#'
+#' Desc
+#' @export
+#' @example logL(x, binomial, c(-100, 100))
+logL <-function(x, fun, int)
+{
+  LL <- function(theta)#Theta Est
+  {
+   sum(fun(theta, x))
+  }
+
+  MLE <- optimize(LL, maximum = TRUE, int)#Likelihood Est
+  return(MLE$maximum)
+}
+ 
+
+ggplotW <- function(d, xcol, ycol, colorVar)
+{
+  plot <- ggplot(data=d, aes(x = xcol, y = ycol, color = colorVar)) + geom_point()
+  print(plot)
+  return(plot)
+} 
+
+spread <- function(d)
+{
+  moo = sum(d$x* d$p)
+  
+  sig2 = (sum(d$x - moo)^2) * d$p
+  
+  sD = sqrt(sig2)
+}
+
+spreadCheck <- function(d)
+{
+  stopifnot(length(d$x) != 0)#Value Checks for x
+  stopifnot(is.finite(d$x))
+  stopifnot(is.numeric(d$x))
+  stopifnot(length(d$p) != 0)#p
+  stopifnot(is.finite(d$p))
+  stopifnot(is.numeric(d$p))
+  stopifnot(all.equal(1, sum(d$p)))
+  
+  moo = sum(d$x * d$p)
+  
+  sig2 = sum(((d$x - moo)^2) * d$p)
+  
+  sD = (sqrt(sig2))
+  
+  list(mu = moo, variance = sig2, StandarDev = sD)
+}
+
+myapply <- function(X, MARGIN, FUN, ...)
+{
+  R = dim(X)[1]
+  C = dim(X)[2]
+  f = match.fun(FUN)
+  
+  if (MARGIN == 1)
+  {
+    result = list()
+    for (i in 1:R)
+    {
+      result[[i]] = f(X[i,], ...)
+    }
+  }
+  else if(MARGIN == 2)
+  {
+    result = list()
+    for (j in 1:C)
+    {
+      result [[j]] = f(X[, j], ...)
+    }
+  }
+  return(simplify2array(result))
+}
+",path=paste(loc,"R",filename,sep="/"))
+
+```
+
+## Mannuals
+
+Here we will use the `document` function in devtools to build Help  files using `roxygen2` syntax. 
+
+```{r}
+devtools::document(loc)
+```
+
+## Vignette
+
+```{r}
+devtools::use_vignette("Explanation", loc)
+```
+
+## Data
+```{r}
+flights <-read.csv("http://users.stat.umn.edu/~almquist/3811_examples/all_alaska_flights.csv")
+d <- read.table(url("http://www.stat.umn.edu/geyer/3701/data/q1p4.txt"), header = TRUE)
+setwd("LATools")
+gap <-read.csv("http://users.stat.umn.edu/~almquist/3811_examples/gapminder2007ex.csv", header = TRUE)
+
+devtools::use_data(gap, d, flights, pkg = loc, overwrite = TRUE)
+
+write_file(x=
+             "
+           #' Example data from class
+           #' 
+           #' @author Charlie Geyer \\email{geyer@umn.edu}
+           #' @references\\url{http://users.stat.umn.edu/~almquist/3811_examples/gapminder2007ex.csv}  
+           \"gap\" 
+           
+           #' @author Charlie Geyer \\email{geyer@umn.edu}
+           #' @references\\url{http://www.stat.umn.edu/geyer/3701/data/q1p4.txt}  
+           \"d\" 
+           
+           #' @author Charlie Geyer \\email{geyer@umn.edu}
+           #' @references\\url{http://users.stat.umn.edu/~almquist/3811_examples/all_alaska_flights.csv}
+           \"flights\" ",path=paste(loc,"R","data.R",sep="/"))
+
+
+devtools::document(loc)
+```
+
+## Testing
+```{r}
+#setwd("LATools")
+use_testthat(loc_pack)
+
+write_file(x="
+context(\"L\")
+test_that(\"x is data, fun is a distribution, int is an interval\", {
+  binomial <- function(theta, x) {dbinom(x, 20, prob = 1 / (1 + exp(- theta)), log = TRUE)}
+  logL(flights, binomial, c(-100,100))
+})
+",path="tests/testthat/test_LogL.R")
+
+use_testthat(pkg = LATools, "spead computes mean, var, sd", {
+         x <- 1:10
+         var1<-function(x){(1/length(x))*sum((x-mean(x))^2)}
+         x_list<-list(mean=mean(x),var=var1(x),sd=sqrt(var1(x)))
+         expect_identical(func1(x), x_list)
+         })
+
+use_testthat()
+```
+
+## Dependencies
+```{r}
+use_package("ggplot2",pkg=loc)
+use_package("dplyr", pkg=loc)
+
+```
+
+##Builds
+
+```{r}
+devtools::check(loc)
+devtools::build(loc)
+devtools::install(loc)
+```
