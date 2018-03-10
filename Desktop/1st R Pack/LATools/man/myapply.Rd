@@ -19,6 +19,6 @@ Returns a simplified array similar to other apply functiion already in R.}
 MyApply
 }
 \examples{
-data(e) 
-myapply(e, 1, mean)
+data(d)
+myapply(d, 1, mean)
 }

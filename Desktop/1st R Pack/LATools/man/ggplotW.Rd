@@ -22,5 +22,5 @@ GGPlot Wrapper
 }
 \examples{
 data(flights)
-ggplotW(flights, 2, 2, color = blue)
+ggplotW(flights, "dep_time", "dep_delay", color = blue)
 }

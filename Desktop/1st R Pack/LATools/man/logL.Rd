@@ -19,7 +19,7 @@ Calculates the log likelihood of a datset over a certain distribution and interv
 Log Likelihood
 }
 \examples{
- 
 data(d)
+binomial = function(theta, x) {dbinom(x, 20, prob = 1 / (1 + exp(- theta)), log = TRUE)}
 logL(d, binomial, c(-100, 100))
 }

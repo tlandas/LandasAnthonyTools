@@ -15,6 +15,6 @@ Gives the mean, variance and standard deviation of a population from data, x in 
 Measures of Spread w/ Checks
 }
 \examples{
-data(d) 
+data(d)
 spread(d)
 }

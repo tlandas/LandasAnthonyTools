@@ -48,7 +48,7 @@ desc[grep("Title",desc)]<-"Title: Landas Anthony Tools"
 desc[grep("Author",desc)]<-"Authors@R: person(\"Tony\", \"Landas\", email = \"landa057@umn.edu\", role = c(\"aut\", \"cre\"))"
 desc[grep("Description",desc)]<-"Description: This is a set of functions, etc for Quiz and HW."
 desc[grep("License",desc)]<-"License: MIT + file LICENSE"
-#writeLines(desc, con=loc_pack, sep ="/")
+writeLines(desc, con=loc_pack, sep ="/")
 
 ```
 
@@ -196,24 +196,40 @@ devtools::document(loc)
 ## Testing
 ```{r}
 #setwd("LATools")
-use_testthat(loc_pack)
+#use_testthat(loc_pack)
 
 write_file(x="
-context(\"L\")
+context(\"Log Likelihood Estimater\")
 test_that(\"x is data, fun is a distribution, int is an interval\", {
   binomial <- function(theta, x) {dbinom(x, 20, prob = 1 / (1 + exp(- theta)), log = TRUE)}
   logL(flights, binomial, c(-100,100))
 })
 ",path="tests/testthat/test_LogL.R")
 
-use_testthat(pkg = LATools, "spead computes mean, var, sd", {
-         x <- 1:10
-         var1<-function(x){(1/length(x))*sum((x-mean(x))^2)}
-         x_list<-list(mean=mean(x),var=var1(x),sd=sqrt(var1(x)))
-         expect_identical(func1(x), x_list)
-         })
+write_file(x="
+context(\"Plot Creator\")
+test_that(\"x is data\", {
+  
+})
+",path="tests/testthat/test_GGPW.R")
 
-use_testthat()
+write_file(x="
+context(\"spread calaculates mu, variance and standard deviation\")
+test_that(\"The 3 functions calculate correctly\", {
+  spreadL <- list(moo=mean(d), var=var(d), sd=sqrt(var(d)))
+  expect_identical(spread(d), spreadL)
+})
+",path="tests/testthat/test_spread.R")
+
+write_file(x="
+context(\"spreadCheck calaculates mu, variance and standard deviation, with GIEMO\")
+test_that(\"The 3 functions calculate correctly and GIEMO catches errors\", {
+  spreadL <- list(moo=mean(d), var=var(d), sd=sqrt(var(d)))
+  expect_identical(spread(d), spreadL)
+
+  Nope <- try(func2(NA),silent=TRUE)
+})
+",path="tests/testthat/test_spreadCheck.R")
 ```
 
 ## Dependencies
